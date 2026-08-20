@@ -1,0 +1,13 @@
+{
+  "port": 8787,
+  "host": "0.0.0.0",
+  "username": "openwain",
+  "password": "openwain",
+  "sessionDays": 365,
+  "maxUploadMb": 2048,
+  "maxLoginAttempts": 5,
+  "loginWindowMinutes": 15,
+  "recentScanLimit": 2000,
+  "trashRetentionDays": 30,
+  "searchScanLimit": 5000
+}

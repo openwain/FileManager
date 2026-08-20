@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183b56">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <title>Lantern 文件库</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <main id="login-view" class="auth-shell" aria-live="polite">
+    <section class="auth-brand">
+      <div class="lantern-mark" aria-hidden="true"><span></span></div>
+      <p class="eyebrow">PRIVATE FILE SPACE</p>
+      <h1>Lantern<br>文件库</h1>
+      <p>一处安静、可靠的个人文件空间。</p>
+      <div class="auth-rule"></div>
+      <p class="auth-note">仅限已授权用户访问</p>
+    </section>
+    <section class="login-panel">
+      <div class="login-heading">
+        <p class="eyebrow">WELCOME BACK</p>
+        <h2>登录到文件库</h2>
+        <p>验证通过后，此设备会保持登录状态。</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <label>用户名<input name="username" autocomplete="username" required autofocus placeholder="输入用户名"></label>
+        <label>密码<input name="password" type="password" autocomplete="current-password" required placeholder="输入密码"></label>
+        <label>验证码
+          <span class="captcha-row"><input name="captcha" autocomplete="off" maxlength="5" required placeholder="输入图中字符"><button type="button" id="refresh-captcha" class="icon-button" aria-label="换一张验证码" title="换一张验证码">↻</button></span>
+        </label>
+        <div id="captcha-image" class="captcha-image" aria-label="验证码"></div>
+        <p id="login-error" class="form-error" role="alert"></p>
+        <button class="primary-button" type="submit">安全登录 <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+  </main>
+
+  <main id="app-view" class="app-shell" hidden>
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-close icon-button" id="sidebar-close-button" aria-label="关闭导航" title="关闭导航">×</button>
+      <a class="brand" href="#" id="home-button"><span class="brand-mark" aria-hidden="true"><i></i></span><span>Lantern<small>文件库</small></span></a>
+      <nav class="side-nav" aria-label="文件位置">
+        <button class="nav-item active" id="nav-files"><span aria-hidden="true">▣</span>全部文件</button>
+        <button class="nav-item" id="nav-recent"><span aria-hidden="true">◷</span>最近修改</button>
+        <button class="nav-item" id="nav-shared" hidden><span aria-hidden="true">⇄</span>收到的文件</button>
+        <button class="nav-item" id="nav-sent" hidden><span aria-hidden="true">↗</span>分享的文件</button>
+        <button class="nav-item" id="nav-trash"><span aria-hidden="true">⌑</span>回收站</button>
+      </nav>
+      <section class="path-topology" id="path-topology" aria-label="当前位置拓扑">
+        <p>位置拓扑</p>
+        <div id="topology-tree"></div>
+      </section>
+      <div class="sidebar-bottom">
+        <div class="storage-label"><span>硬盘空间</span><span id="storage-used-percent">--</span></div>
+        <div class="storage-capacity"><span>总空间 <strong id="storage-total">--</strong></span><span>剩余空间 <strong id="storage-free">--</strong></span></div>
+        <div class="storage-track"><i id="storage-fill"></i></div>
+        <p>文件仅保存在此服务的存储目录内。</p>
+      </div>
+    </aside>
+    <button class="mobile-drawer-backdrop" id="mobile-drawer-backdrop" aria-label="关闭导航"></button>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <button class="mobile-menu icon-button" id="mobile-menu" aria-label="打开导航" title="打开导航" aria-controls="sidebar" aria-expanded="false">☰</button>
+          <div class="identity-workspace-group">
+            <div class="topbar-identity" title="已登录用户">
+              <span class="identity-mark" aria-hidden="true"><i></i></span>
+              <div class="identity-copy"><strong id="current-username">--</strong><span id="workspace-greeting" class="workspace-greeting">私有工作区</span></div>
+            </div>
+            <button id="workspace-switch-button" class="workspace-switch-button" type="button" hidden>
+              <span class="workspace-switch-icon" aria-hidden="true">⇄</span>
+              <span id="workspace-switch-label">公共工作区</span>
+            </button>
+          </div>
+          <div class="breadcrumbs" id="breadcrumbs" hidden></div>
+          <div class="topbar-actions">
+            <div class="search-tools" role="search">
+              <label class="search-box"><span class="search-icon" aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="搜索文件"><kbd aria-hidden="true">/</kbd></label>
+              <details class="search-options" id="search-options">
+                <summary title="搜索筛选" aria-label="搜索筛选"><span class="filter-icon" aria-hidden="true"><i></i></span><span>筛选</span></summary>
+                <div class="search-options-popover">
+                  <label><span>搜索范围</span><select id="search-type" class="search-control"><option value="all">全部</option><option value="file">文件</option><option value="folder">文件夹</option></select></label>
+                  <label><span>排序方式</span><select id="search-sort" class="search-control"><option value="modified">最新修改</option><option value="name">名称</option><option value="size">大小</option></select></label>
+                </div>
+              </details>
+            </div>
+            <button id="logout-button" class="header-icon-button" aria-label="退出登录" title="退出登录"><span aria-hidden="true">⇥</span><span class="sr-only">退出</span></button>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="page-title-row">
+          <div class="title-block"><div class="section-heading"><p class="eyebrow" id="section-kicker">MY SPACE</p></div><h1 id="folder-title">全部文件</h1></div>
+          <div class="command-row">
+            <button class="quiet-button" id="new-folder-button"><span aria-hidden="true">＋</span> 新建文件夹</button>
+            <label class="quiet-button upload-button" id="folder-upload-button"><input id="folder-input" type="file" webkitdirectory directory multiple>上传文件夹 <span aria-hidden="true">↥</span></label>
+            <label class="primary-button upload-button" id="file-upload-button"><input id="upload-input" type="file" multiple>上传文件 <span aria-hidden="true">↑</span></label>
+          </div>
+        </div>
+        <div id="drop-zone" class="file-surface">
+          <div class="surface-toolbar">
+            <label class="grid-select-control" id="grid-select-control" hidden><input id="grid-select-all" type="checkbox" aria-label="全选当前列表"><span>全选</span></label><span id="file-count">--</span>
+            <div class="batch-toolbar" id="batch-toolbar" hidden><span id="selected-count">0 项已选</span><button class="quiet-button" id="batch-download">下载 ZIP</button><button class="quiet-button" id="batch-move">移动到...</button><button class="quiet-button" id="batch-share">分享</button><button class="quiet-button" id="batch-restore" hidden>恢复</button><button class="quiet-button danger-text" id="batch-delete">移入回收站</button><button class="quiet-button" id="batch-purge" hidden>永久删除</button></div><div class="view-actions"><button class="back-button toolbar-back" id="back-button" title="返回上一级" hidden><span aria-hidden="true">←</span><span>返回上一级</span></button><button class="icon-button active" id="view-toggle" type="button" aria-label="切换到列表视图" title="切换到列表视图"><span class="view-icon view-icon-list" aria-hidden="true"></span><span class="sr-only">切换视图</span></button></div>
+          </div>
+          <div class="upload-progress" id="upload-progress" hidden>
+            <div class="upload-progress-head"><div><strong id="upload-progress-label">正在上传</strong><small id="upload-progress-detail">准备中</small></div><span id="upload-progress-percent">0%</span><button class="icon-button" id="cancel-upload" type="button" aria-label="取消上传" title="取消上传">×</button></div>
+            <div class="upload-progress-track"><i id="upload-progress-fill"></i></div>
+          </div>
+          <div class="upload-progress download-progress is-preparing" id="download-progress" hidden role="progressbar" aria-label="文件夹下载进度" aria-valuemin="0" aria-valuemax="100">
+            <div class="upload-progress-head"><div><strong id="download-progress-label">正在准备下载</strong><small id="download-progress-detail">正在打包文件夹</small></div><span id="download-progress-percent">准备中</span><button class="icon-button" id="cancel-download" type="button" aria-label="取消下载" title="取消下载">×</button></div>
+            <div class="upload-progress-track"><i id="download-progress-fill"></i></div>
+          </div>
+          <div class="file-head"><span class="check-cell"><input id="select-all" type="checkbox" aria-label="全选当前列表"></span><span>名称</span><span>修改时间</span><span>大小</span><span aria-label="操作"></span></div>
+          <div id="file-list" class="file-list"></div>
+          <div id="empty-state" class="empty-state" hidden><div class="empty-glyph" aria-hidden="true">□</div><h2>这里还没有文件</h2><p>上传文件，或新建一个文件夹开始整理。</p><label class="quiet-button upload-button"><input type="file" class="empty-upload" multiple>上传文件</label></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="name-dialog" class="name-dialog">
+    <form method="dialog" id="name-form">
+      <button class="dialog-close" id="name-dialog-close" type="button" aria-label="关闭" title="关闭">×</button>
+      <p class="eyebrow" id="dialog-kicker">ORGANIZE</p>
+      <h2 id="dialog-title">新建文件夹</h2>
+      <label id="name-label">名称<input id="name-input" required maxlength="120" autocomplete="off"></label>
+      <p id="dialog-error" class="form-error"></p>
+      <div class="dialog-actions"><button type="button" class="quiet-button" id="name-dialog-cancel">取消</button><button type="submit" class="primary-button" id="dialog-confirm">创建</button></div>
+    </form>
+  </dialog>
+  <dialog id="move-dialog" class="name-dialog move-dialog">
+    <form method="dialog" id="move-form">
+      <button class="dialog-close" id="move-dialog-close" type="button" aria-label="关闭" title="关闭">×</button>
+      <p class="eyebrow" id="move-dialog-kicker">MOVE ITEM</p>
+      <h2 id="move-dialog-title">移动项目</h2>
+      <p class="share-file-name" id="move-file-name"></p>
+      <label class="move-folder-label">目标文件夹</label>
+      <div class="move-folder-path"><span id="move-folder-current">全部文件</span><button type="button" id="move-folder-back" class="move-folder-back" aria-label="返回上一级" title="返回上一级"><span aria-hidden="true">←</span><strong>返回上一级</strong></button></div>
+      <div id="move-folder-list" class="move-folder-list" role="listbox" aria-label="目标文件夹"></div>
+      <p id="move-error" class="form-error"></p>
+      <div id="move-new-folder-row" class="move-new-folder-row" hidden><input id="move-new-folder-name" maxlength="120" placeholder="新文件夹名称" autocomplete="off"><button type="button" class="quiet-button" id="move-create-folder">创建</button></div>
+      <div class="move-dialog-footer"><button type="button" class="move-new-folder" id="move-new-folder">新建文件夹</button><div class="dialog-actions"><button type="button" class="quiet-button" id="move-dialog-cancel">取消</button><button type="submit" class="primary-button" id="move-confirm">移动到此处</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="share-dialog" class="name-dialog share-dialog">
+    <form method="dialog" id="share-form">
+      <button class="dialog-close" id="share-dialog-close" type="button" aria-label="关闭" title="关闭">×</button>
+      <p class="eyebrow">SHARE ACCESS</p>
+      <h2>发送文件</h2>
+      <p class="share-file-name" id="share-file-name"></p>
+      <label class="share-permission"><input id="share-can-overwrite" type="checkbox"><span><strong>允许覆盖同名原文件</strong><small>默认只读；勾选后接收者可上传同名文件覆盖原内容</small></span></label>
+      <label class="share-expiry">有效期<select id="share-expiry"><option value="">长期有效</option><option value="1">1 天</option><option value="7">7 天</option><option value="30">30 天</option></select></label>
+      <fieldset><legend>选择接收用户</legend><div id="share-users" class="share-users"></div></fieldset>
+      <p id="share-error" class="form-error"></p>
+      <div class="dialog-actions"><button type="button" class="quiet-button" id="share-dialog-cancel">取消</button><button type="submit" class="primary-button">发送</button></div>
+    </form>
+  </dialog>
+  <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="confirm-dialog-body">
+      <div class="confirm-icon" aria-hidden="true">!</div>
+      <div class="confirm-copy">
+        <p class="eyebrow" id="confirm-kicker">CONFIRM ACTION</p>
+        <h2 id="confirm-title">请确认此操作</h2>
+        <p id="confirm-message" class="confirm-message"></p>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="quiet-button" id="confirm-cancel">取消</button>
+        <button type="button" class="confirm-button" id="confirm-accept">确认</button>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="preview-dialog" class="name-dialog preview-dialog">
+    <div id="preview-shell" class="preview-shell">
+      <div class="preview-head"><strong id="preview-title">文件预览</strong><div class="preview-actions"><button class="quiet-button preview-fullscreen-button" id="preview-fullscreen" type="button" aria-label="全屏预览" title="全屏预览"><span aria-hidden="true">⤢</span></button><button class="quiet-button" id="preview-download" type="button">下载</button><button class="quiet-button" id="preview-share" type="button">分享</button></div><button class="dialog-close" id="preview-close" type="button" aria-label="关闭预览" title="关闭">×</button></div>
+      <div id="preview-content" class="preview-content"></div>
+    </div>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/file-icons.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
